@@ -20,24 +20,18 @@ RUN cd /tmp && \
         tar xzf spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz -C /usr/local && \
         rm spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz
 RUN cd /usr/local && ln -s spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6 spark
-
+RUN wget -P /tmp/ https://hub.dataos.io/datahub_1.1.0-1_amd64.deb \
+    && dpkg -i /tmp/datahub_1.1.0-1_amd64.deb
 # Mesos dependencies
 # Currently, Mesos is not available from Debian Jessie.
 # So, we are installing it from Debian Wheezy. Once it
 # becomes available for Debian Jessie. We should switch
 # over to using that instead.
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv E56151BF && \
-    DISTRO=debian && \
-    CODENAME=wheezy && \
-    echo "deb http://repos.mesosphere.io/${DISTRO} ${CODENAME} main" > /etc/apt/sources.list.d/mesosphere.list && \
-    apt-get -y update && \
-    apt-get --no-install-recommends -y --force-yes install mesos=0.22.1-1.0.debian78 && \
-    apt-get clean
+
 
 # Spark and Mesos pointers
 ENV SPARK_HOME /usr/local/spark
 ENV PYTHONPATH $SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.9-src.zip
-ENV MESOS_NATIVE_LIBRARY /usr/local/lib/libmesos.so
 
 USER jovyan
 
@@ -48,7 +42,6 @@ RUN conda install --quiet --yes \
     'matplotlib=1.5*' \
     'scipy=0.17*' \
     'seaborn=0.7*' \
-     'ggplot' \
     'scikit-learn=0.17*' \
     && conda clean -tipsy
 
@@ -60,10 +53,11 @@ RUN conda create --quiet --yes -p $CONDA_DIR/envs/python2 python=2.7 \
     'matplotlib=1.5*' \
     'scipy=0.17*' \
     'seaborn=0.7*' \
-    'ggplot' \
     'scikit-learn=0.17*' \
     pyzmq \
     && conda clean -tipsy
+
+RUN pip install ggplot
 
 # Install Python 2 kernel spec into the Python 3 conda environment which
 # runs the notebook server
