@@ -48,6 +48,7 @@ RUN conda install --quiet --yes \
     'matplotlib=1.5*' \
     'scipy=0.17*' \
     'seaborn=0.7*' \
+     'ggplot=0.6.8*' \
     'scikit-learn=0.17*' \
     && conda clean -tipsy
 
@@ -59,6 +60,7 @@ RUN conda create --quiet --yes -p $CONDA_DIR/envs/python2 python=2.7 \
     'matplotlib=1.5*' \
     'scipy=0.17*' \
     'seaborn=0.7*' \
+    'ggplot=0.6.8*' \
     'scikit-learn=0.17*' \
     pyzmq \
     && conda clean -tipsy
