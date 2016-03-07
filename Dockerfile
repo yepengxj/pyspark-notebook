@@ -57,7 +57,9 @@ RUN conda create --quiet --yes -p $CONDA_DIR/envs/python2 python=2.7 \
     pyzmq \
     && conda clean -tipsy
 
-RUN pip install ggplot
+RUN pip install ggplot plotly
+
+COPY datahub_login.sh /usr/bin/datahub_login
 
 # Install Python 2 kernel spec into the Python 3 conda environment which
 # runs the notebook server
