@@ -55,7 +55,7 @@ RUN conda create --quiet --yes -p $CONDA_DIR/envs/python2 python=2.7 \
     pyzmq \
     && conda clean -tipsy
 
-RUN pip install ggplot plotly
+RUN pip install ggplot plotly pymongo
 
 COPY datahub_login.sh /usr/bin/datahub_login
 RUN chmod +x datahub_login
