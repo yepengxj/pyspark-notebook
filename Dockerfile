@@ -33,8 +33,6 @@ RUN wget -P /tmp/ https://hub.dataos.io/datahub_1.1.0-1_amd64.deb \
 ENV SPARK_HOME /usr/local/spark
 ENV PYTHONPATH $SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.9-src.zip
 
-USER jovyan
-
 # Install Python 3 packages
 RUN conda install --quiet --yes \
     'ipywidgets=4.1*' \
@@ -60,6 +58,7 @@ RUN conda create --quiet --yes -p $CONDA_DIR/envs/python2 python=2.7 \
 RUN pip install ggplot plotly
 
 COPY datahub_login.sh /usr/bin/datahub_login
+RUN chmod +x datahub_login
 
 # Install Python 2 kernel spec into the Python 3 conda environment which
 # runs the notebook server
