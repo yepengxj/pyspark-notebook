@@ -7,31 +7,41 @@ MAINTAINER Jupyter Project <jupyter@googlegroups.com>
 USER root
 
 # Util to help with kernel spec later
-RUN apt-get -y update && apt-get -y install jq
+RUN apt-get -y update && apt-get -y install jq && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Spark dependencies
 ENV APACHE_SPARK_VERSION 1.6.0
 RUN apt-get -y update && \
     apt-get install -y --no-install-recommends openjdk-7-jre-headless && \
-    apt-get clean
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 RUN cd /tmp && \
         wget -q http://d3kbcqa49mib13.cloudfront.net/spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz && \
         echo "439fe7793e0725492d3d36448adcd1db38f438dd1392bffd556b58bb9a3a2601 *spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz" | sha256sum -c - && \
         tar xzf spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz -C /usr/local && \
         rm spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6.tgz
 RUN cd /usr/local && ln -s spark-${APACHE_SPARK_VERSION}-bin-hadoop2.6 spark
-RUN wget -P /tmp/ https://hub.dataos.io/datahub_1.1.0-1_amd64.deb \
-    && dpkg -i /tmp/datahub_1.1.0-1_amd64.deb
+
 # Mesos dependencies
 # Currently, Mesos is not available from Debian Jessie.
 # So, we are installing it from Debian Wheezy. Once it
 # becomes available for Debian Jessie. We should switch
 # over to using that instead.
-
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv E56151BF && \
+    DISTRO=debian && \
+    CODENAME=wheezy && \
+    echo "deb http://repos.mesosphere.io/${DISTRO} ${CODENAME} main" > /etc/apt/sources.list.d/mesosphere.list && \
+    apt-get -y update && \
+    apt-get --no-install-recommends -y --force-yes install mesos=0.22.1-1.0.debian78 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Spark and Mesos pointers
 ENV SPARK_HOME /usr/local/spark
 ENV PYTHONPATH $SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.9-src.zip
+ENV MESOS_NATIVE_LIBRARY /usr/local/lib/libmesos.so
+
+USER jovyan
 
 # Install Python 3 packages
 RUN conda install --quiet --yes \
@@ -55,11 +65,6 @@ RUN conda create --quiet --yes -p $CONDA_DIR/envs/python2 python=2.7 \
     pyzmq \
     && conda clean -tipsy
 
-RUN pip install ggplot plotly pymongo
-
-COPY datahub_login.sh /usr/bin/datahub_login
-RUN chmod +x  /usr/bin/datahub_login
-
 # Install Python 2 kernel spec into the Python 3 conda environment which
 # runs the notebook server
 RUN bash -c '. activate python2 && \
@@ -69,3 +74,12 @@ RUN bash -c '. activate python2 && \
 RUN jq --arg v "$CONDA_DIR/envs/python2/bin/python" \
         '.["env"]["PYSPARK_PYTHON"]=$v' \
         $CONDA_DIR/share/jupyter/kernels/python2/kernel.json > /tmp/kernel.json && \
+        mv /tmp/kernel.json $CONDA_DIR/share/jupyter/kernels/python2/kernel.json
+
+RUN pip install ggplot plotly pymongo
+
+RUN wget -P /tmp/ https://hub.dataos.io/datahub_1.1.0-1_amd64.deb \
+    && dpkg -i /tmp/datahub_1.1.0-1_amd64.deb
+    
+COPY datahub_login.sh /usr/bin/datahub_login
+RUN chmod +x  /usr/bin/datahub_login
