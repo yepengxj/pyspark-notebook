@@ -41,7 +41,6 @@ ENV SPARK_HOME /usr/local/spark
 ENV PYTHONPATH $SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.9-src.zip
 ENV MESOS_NATIVE_LIBRARY /usr/local/lib/libmesos.so
 
-USER jovyan
 
 # Install Python 3 packages
 RUN conda install --quiet --yes \
