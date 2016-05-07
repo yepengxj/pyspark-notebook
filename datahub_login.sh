@@ -12,5 +12,3 @@ send -- \"\r\"
 expect eof
 ")
 
-echo $VAR
-echo "============"
